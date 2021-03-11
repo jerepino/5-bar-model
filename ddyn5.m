@@ -11,29 +11,42 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     qdd2 = qdd(4:5);
     xdd = t0rd(1);
     ydd = t0rd(2);
-    % Numerical Solution Dynamic
-% Numerical Solution Dynamic
-    m12 = 83.731e-3; %kg
-    mx12 = m12 * 8.82e-2;
-    my12 = m12 * 1.44e-2;
-    m22 = 102.422e-3; %kg
-    mx22= m22 * 7.21e-2;
-    my22= m22 * 1.48e-2;
-
+    % Numerical Solution Dynamics
+    % Gravity 
+    g = 9.80665;
+    
+    m11 = 83.731e-3; %kg
+    mx11 = m11 * 8.82e-2;
+    my11 =  0; %m11 * 1.44e-2;
+    zz11 = 12375.675e-7;
+    
+    m21 = 102.422e-3; %kg
+    mx21= m21 * 7.21e-2;
+    my21= 0; %m21 * 1.48e-2;
+    zz21 = 12469.254e-7;
+    
+    m12 = 72.02e-3;
+    my12 = 0;
+    mx12 = m12 * 10.25e-2;
     zz12 = 12283.918e-7;
+    
+    m22 = 72.02e-3;
+    my22 = 0;
+    mx22 = m22 * 10.25e-2;
     zz22 = 12283.918e-7;
+    
     %Fricciones fv = viscosa fs= seca
     fv1 = [1.5e-5 0 0];
     fs1 = [1.5e-5 0 0];
     fv2 = [0 0];
     fs2 = [0 0];
     
-    zz11 = 12375.675e-7; % kg-m²
+%     zz11 = 12375.675e-7; % kg-m²
     Ia11 = 0.48 * 0.0001; % kg-m2
     zz11r = zz11 + Ia11 + d1(2)^2 * m12;
 %     zz11r = 2.11e-2;
 
-    zz21 = 12469.254e-7; % kg-m²
+%     zz21 = 12469.254e-7; % kg-m²
     Ia21 = 0.48 * 0.0001; % kg-m2
     zz21r = zz21 + Ia21 + d2(2)^2 * m22;
 %     zz21r = 2.24e-2;
@@ -63,21 +76,27 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
 
     c1 = -d1(2) * mx12 * qd1(2) * (2 * qd1(1) + qd1(2)) * sin(q1(2)) + ...
          d1(2) * my12 * qd1(2) * (2 * qd1(1) + qd1(2)) * cos(q1(2)) + ...
-         fs1(1) * sign(qd1(1)) + fv1(1) * qd1(1);
+         fs1(1) * sign(qd1(1)) + fv1(1) * qd1(1) + ...
+         (my12*sin(q1(1) + q1(2)) - mx12*cos(q1(1) + q1(2)) - mx11*cos(q1(1)) + ...
+         my11*sin(q1(1)) - d1(2)*m12*cos(q1(1)))*g;
 
     c2 = d1(2) * mx12 * qd1(1)^2 * sin(q1(2)) - ...
          d1(2) * my12 * qd1(1)^2 * cos(q1(2)) + ...
-         fs1(2) * sign(qd1(2)) + fv1(2) * qd1(2);
+         fs1(2) * sign(qd1(2)) + fv1(2) * qd1(2) + ...
+         (my12*sin(q1(1) + q1(2)) - mx12*cos(q1(1) + q1(2)))*g;
 
     c3 = fs1(3)*sign(qd1(3)) + fv1(3)*qd1(3);
 
     c4 = -d2(2) * mx22 * qd2(2) * (2 * qd2(1) + qd2(2) ) * sin(q2(2)) + ...
          d2(2) * my22 * qd2(2) * (2 * qd2(1) + qd2(2) ) * cos(q2(2)) + ...
-         fs2(1) * sign( qd2(1) ) + fv2(1) * qd2(1);
+         fs2(1) * sign( qd2(1) ) + fv2(1) * qd2(1) + ...
+         (my22*sin(q2(1) + q2(2)) - mx22*cos(q2(1) + q2(2)) - mx21*cos(q2(1)) ...
+         + my21*sin(q2(1)) - d2(2)*m22*cos(q2(1)))*g;
 
     c5 = d2(2) * mx22 * qd2(1)^2 * sin(q2(2)) - ...
          d2(2) * my22 * qd2(1)^2 * cos(q2(2)) + ...
-         fs2(2) * sign(qd2(2)) + fv2(2) * qd2(2);
+         fs2(2) * sign(qd2(2)) + fv2(2) * qd2(2) + ...
+         (my22*sin(q2(1) + q2(2)) - mx22*cos(q2(1) + q2(2)))*g;
 
     ct = [c1; c2; c3; c4; c5];
 
@@ -89,7 +108,7 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
 
     M0p = m4 * [eye(2), zeros(2,4); zeros(4,2), zeros(4)];
     % c0p = zeros(6,1);
-    w0p_ = M0p * [xdd; ydd; zeros(4,1)]; % + c0p;
+    w0p_ = M0p * [xdd; ydd-g; zeros(4,1)]; % + c0p;
 
     % M0r = Psit' * M0p * Psit; % Igual a m4*eye(2)
     M0r = m4 * eye(2);
