@@ -1,0 +1,2 @@
+1. Usar pseudoinversa para evitar vel y acel infinitas.
+2. Obtener espacio nulo ts. Tal vez sirver para pasar por las sigularidades.
