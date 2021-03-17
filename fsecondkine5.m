@@ -35,6 +35,6 @@ function [t0rd] = fsecondkine5(qdda,qd,q,Ar,J)
 
     b0p = [(wr1'*b0p1); (wr2'*b0p2)];
 
-    at = inv(Ar)*b0p;
-    t0rd = (J * qdda+ at);
+    at = Ar\b0p;
+    t0rd = (J * qdda + at);
 

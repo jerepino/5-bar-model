@@ -12,6 +12,8 @@ function [T] = idyn5(q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit)
     xdd = t0rd(1);
     ydd = t0rd(2);
     % Dynamic
+    % gravity
+    g = -9.80665;
     % Numerical Solution Dynamic
     m12 = 83.731e-3; %kg
     mx12 = m12 * 8.82e-2;
@@ -54,12 +56,12 @@ function [T] = idyn5(q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit)
     Tt2(2) = zz22 *(qdd2(1) + qdd2(2)) + d2(2) * mx22 * (qdd2(1) * cos(q2(2)) + qd2(1)^2 * sin(q2(2))) + ...
              d2(2) * my22 * (qdd2(1) * sin(q2(2)) - qd2(1)^2 * cos(q2(2))) + fs2(2) * sign(qd2(2)) + fv2(2) * qd2(2);
     % End effector like a punctual mass fixed on B22
-    w0p = m4 * [xdd; ydd; zeros(4,1)];
+    w0p = m4 * [xdd; ydd-g; zeros(4,1)];
     w0r = Psit' * w0p;
     % IDM
     Tta = [Tt1(1); Tt2(1)];
     Ttd = [Tt1(2:3)'; Tt2(2)];
 
-    Jd = inv(Jtd) * (Jt * J - Jta);
+    Jd = Jtd \ (Jt * J - Jta);
 
     T = Tta + J' * w0r + Jd' * Ttd;

@@ -1,5 +1,5 @@
 %% NOTA: Evaluar pasar más parametros como la matris Psit
-function [qdd,qdda,qddu,Psit1,Psit2,atp,ad] = isecondkine5(t0rd,t0r,p,q,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit)
+function [qdd,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd,t0r,p,q,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit)
 % This function implement the second-order inverse kinematics model of a five bar robot
 % @param t0rd: derivate twist end-effector vector 2X1
 % @param t0r: twist end-effector vector 2X1
@@ -55,7 +55,7 @@ function [qdd,qdda,qddu,Psit1,Psit2,atp,ad] = isecondkine5(t0rd,t0r,p,q,qd,Ar,B,
 
     b0p = [(wr1'*b0p1); (wr2'*b0p2)];
 
-    aqq = inv(B) * b0p;
+    aqq = B \ b0p;
     qdda = (Jinv * t0rd + aqq);
 
     % Aceleracion pasiva
@@ -90,15 +90,15 @@ function [qdd,qdda,qddu,Psit1,Psit2,atp,ad] = isecondkine5(t0rd,t0r,p,q,qd,Ar,B,
              0                 0                0 0 0 1];
     Psit2 = [-sin(q2(1)+q2(2)) cos(q2(1)+q2(2)) 0 0 0 0];
 
-    dc1 = Psit1 * (eye(6)* Psidt * t0r - b0p1);
+    dc1 = Psit1 * (eye(6)* Psidt * t0r - b0p1); % Jti = I6x6 -> di = 06x1
     dc2 = Psit2 * (eye(6)* Psidt * t0r - b0p2);
     dc = [dc1;
           dc2];
 
-    qddu =  inv(Jtd)*(Jt*t0rd - Jta*qdda + dc);
+    qddu =  Jtd\(Jt*t0rd - Jta*qdda + dc);
 
     qdd = [qdda(1);qddu(1);qddu(2);qdda(2);qddu(3)];
 
-    at = inv(Ar) * b0p;
+    at = Ar \ b0p;
     atp = Psit * at + Psidt * t0r;% using for dynamics
-    ad = inv(Jtd) * (dc + Jt*at); % For dynamics
+    ad = Jtd \ (dc + Jt*at); % For dynamics

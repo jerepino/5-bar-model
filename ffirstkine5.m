@@ -9,13 +9,13 @@ function [t0r] = ffirstkine5(q,qda)
     q1 = q(1:3);
     q2 = q(4:5);
 
-    B = [ -d1(2)*sin(q1(2)), 0;
-          0, -d2(2)*sin(q2(2))];
+    B = -[ d1(2)*sin(q1(2)), 0;
+          0, d2(2)*sin(q2(2))];
 
     Ar = [cos(q1(1) + q1(2)), sin(q1(1) + q1(2));
           cos(q2(1) + q2(2)), sin(q2(1) + q2(2))];
     % forward model
-    J = -B / Ar;
+    J = -Ar \ B ;
     t0r = J * qda;
     % qd11 = qda(1);
     % qd21 = qda(2);

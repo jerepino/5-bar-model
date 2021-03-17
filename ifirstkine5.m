@@ -24,29 +24,33 @@ function [qd,qda,qdu,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r,p,q)
     x = p(1);
     y = p(2);
 
-    B = [ -d1(2)*sin(q1(2)), 0;
-          0, -d2(2)*sin(q2(2))];
+    B = -[ d1(2)*sin(q1(2)), 0;
+          0, d2(2)*sin(q2(2))];
 
 
     Ar = [cos(q1(1) + q1(2)), sin(q1(1) + q1(2));
           cos(q2(1) + q2(2)), sin(q2(1) + q2(2))];
     % forward model
-    J = -B / Ar;
+    J = -Ar \ B ;
     % t0r = J * qda;
     % t0r =[ -(d1(2)*qd11*sin(q2(1) + q2(2))*sin(q1(2)) - ...
     %                 d2(2)*qd21*sin(q1(1) + q1(2))*sin(q2(2)))/sin(q1(1) + q1(2) - q2(1) - q2(2));
     %         (d1(2)*qd11*cos(q2(1) + q2(2))*sin(q1(2)) - ...
     %                 d2(2)*qd21*cos(q1(1) + q1(2))*sin(q2(2)))/sin(q1(1) + q1(2) - q2(1) - q2(2))];
 
-    Jinv = -Ar / B;
+    Jinv = -B \ Ar;
     qda = Jinv * t0r;
     % qda = [(xd*cos(q1(1) + q1(2)) + yd*sin(q1(1) + q1(2)))/(d1(2)*sin(q1(2)));
     %        (xd*cos(q2(1) + q2(2)) + yd*sin(q2(1) + q2(2)))/(d2(2)*sin(q2(2)))];
 
+    % passive velocities calculation
 
     ay = cos(Phi)^2 / (x - d2(2)*cos(q2(1)) - d2(1));
-    ax = - ((y-d2(2)*sin(q2(1)))*cos(Phi)^2) / (x - d2(2)*cos(q2(1)) - d2(1))^2;
-    aq = -(d2(2) * ((x-d2(1))*cos(q2(1))+y*sin(q2(1))-d2(2))*cos(Phi)^2) / (x - d2(2)*cos(q2(1)) - d2(1))^2;
+    ax = - ((y-d2(2)*sin(q2(1)))*cos(Phi)^2) ...
+           / (x - d2(2)*cos(q2(1)) - d2(1))^2;
+    aq = -(d2(2) * ((x-d2(1))*cos(q2(1)) ...
+          +y*sin(q2(1))-d2(2))*cos(Phi)^2) ...
+          / (x - d2(2)*cos(q2(1)) - d2(1))^2;
 
     Psit = [1                     0
             0                     1
@@ -68,7 +72,7 @@ function [qd,qda,qdu,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r,p,q)
             1,   1,   0;
             0,   0, d2(3)];
 
-    qdu = inv(Jtd)*(Jt * t0r - Jta * qda); 
+    qdu = Jtd\(Jt * t0r - Jta * qda);
     qd = [qda(1);qdu(1);qdu(2);qda(2);qdu(3)];
     % qdu = [ - (xd*cos(q1(1) + q1(2)) + yd*sin(q1(1) + q1(2)))/(d1(2)*sin(q1(2))) - ...
     %                 (d1(2)*xd*cos(q1(1)) + d1(2)*yd*sin(q1(1)))/(d1(2)*d1(3)*sin(q1(2)));
