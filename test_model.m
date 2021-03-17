@@ -5,43 +5,46 @@ qdda =[1;1];
 n=50;
 % x = -0.1:0.2/n:0.1;
 % y = 0.2:0.1/n:0.3;
-p= zeros(n,2);
-g = 9.80665;
+p= zeros(2,1);
+g = -9.80665;
 t0r = p;
 t0rd = p;
 % figure(5)
 % lspb(0.2,0.3,n);
 % [p(:,1),t0r(:,1),t0rd(:,1)] = lspb(-0.1,0.1,n);
 % [p(:,2),t0r(:,2),t0rd(:,2)] = lspb(0.35,0.3,n);
-p(:,1) = ones(n,1)*0;
-p(:,2) = ones(n,1)*0.35;
-t0r(:,1) = 10;
-for i=1:n
-    [q(:,i),~,~] = ikine5(p(i,:)');
+x0 = 0;
+y0 = 0.35;
+p0 = [x0;y0];
+t0r0 = [0;0];
+
+    q_mode = ikine5(p0);
+    q0 = q_mode(:,4);
+    q = q_mode(:,4); % Using -+ mode (4)
+    qa = [q(1);q(4)];
     % p_ = fkine5(q(:,i))
-    if q(2,i) == 0 || q(2,i) ==pi || q(2,i) ==-pi || q(2,i) ==-2*pi ...
-            || q(2,i) ==2*pi || q(5,i)==0 || q(5,i)==pi || q(5,i)==-pi ...
-            || q(5,i)==-2*pi || q(5,i)==2*pi
-        disp('Type 1 singularity found');
-    elseif q(1,i)+q(2,i)-q(4,i)-q(5,i)==0 || q(1,i)+q(2,i)-q(4,i)-q(5,i)==pi ...
-            || q(1,i)+q(2,i)-q(4,i)-q(5,i)==-pi || q(1,i)+q(2,i)-q(4,i)-q(5,i)==2*pi ...
-            || q(1,i)+q(2,i)-q(4,i)-q(5,i)==-2*pi
-        disp('Type 2 singularity found')
-    end
+%     if q(2,i) == 0 || q(2,i) ==pi || q(2,i) ==-pi || q(2,i) ==-2*pi ...
+%             || q(2,i) ==2*pi || q(5,i)==0 || q(5,i)==pi || q(5,i)==-pi ...
+%             || q(5,i)==-2*pi || q(5,i)==2*pi
+%         disp('Type 1 singularity found');
+%     elseif q(1,i)+q(2,i)-q(4,i)-q(5,i)==0 || q(1,i)+q(2,i)-q(4,i)-q(5,i)==pi ...
+%             || q(1,i)+q(2,i)-q(4,i)-q(5,i)==-pi || q(1,i)+q(2,i)-q(4,i)-q(5,i)==2*pi ...
+%             || q(1,i)+q(2,i)-q(4,i)-q(5,i)==-2*pi
+%         disp('Type 2 singularity found')
+%     end
 %     q(1,i)+q(2,i)-q(4,i)-q(5,i)
     % t0r = ffirstkine5(q,qda);
-    [qd(:,i),qda(:,i),~,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r(i,:)',p(i,:)',q(:,i));
+    [qd,qda,~,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r,p0,q0);
     % qda_
 
     % t0rd = fsecondkine5(qdda,qd,q,Ar,J);
-    [qdd(:,i),qdda(:,i),~,Psit1,Psit2,atp,ad] = isecondkine5(t0rd(i,:)',t0r(i,:)',p(i,:)',q(:,i),qd(:,i),Ar,B,Jinv,Jt,Jta,Jtd,Psit);
+    [qdd,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
     % qdda_
-    T(:,i) = idyn5(q(:,i),qd(:,i),qdd(:,i),t0rd(i,:)',J,Jt,Jta,Jtd,Psit);
-    qdda_d(:,i) = ddyn5(T(:,i),q(:,i),qd(:,i),qdd(:,i),t0rd(i,:)',J,Jt,Jta,Jtd,Psit,atp,ad);
-end
-qa = [q(1,:);q(4,:)];
-x0 = p(1,1);
-y0 = p(1,2);
+%     T(:,i) = idyn5(q(:,i),qd(:,i),qdd(:,i),t0rd(i,:)',J,Jt,Jta,Jtd,Psit);
+%     qdda_d(:,i) = ddyn5(T(:,i),q(:,i),qd(:,i),qdd(:,i),t0rd(i,:)',J,Jt,Jta,Jtd,Psit,atp,ad);
+% qa = [q(1,:);q(4,:)];
+% x0 = p(1,1);
+% y0 = p(1,2);
 
 % figure(1)
 % plot(T(1,:),'g--');
