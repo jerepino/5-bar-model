@@ -15,7 +15,8 @@ arm2.base = transl(0.125, 0, 0);
 n=50;
 x=  zeros(n,1); %-0.1 * ones(n,1);
 dt = 0.3-0.1;
-y = -0.05:-dt/n:-0.35;
+y = 0.30:-dt/n:0.10;
+j = 1;
 for i=1:n
 % p0 = [0; 0.19];
 p0 = [x(i);y(i)];
@@ -27,7 +28,17 @@ q0 = ikine5(p0);
 % arm2.plot([q0(4:5,i)',0])
 % pause();
 % end
-q0 = q0(:,1); % Using -+ mode (4)
+q0 = q0(:,4); % Using -+ mode (4)
+    l = 0.205;
+    l0 = 0.125;
+    A12 = [l*cos(q0(1))-l0; l*sin(q0(1))];
+    A22 = [l*cos(q0(4))+l0; l*sin(q0(4))];
+
+    if sqrt((A12-A22)' * (A12-A22)) >= (2*l-0.0001)
+        q_sing(:,j) = [q0(1);q0(4)];
+        index(j) = i;
+        j = j+1;
+    end
 qa(:,i) = [q0(1);q0(4)];
 
 % Forward kinematics validation
@@ -55,13 +66,20 @@ t0rd = [0;0];
 
 % dynamic
 T = [0;0];
-[qdda_dynamics(:,i)] = ddyn5(T,q0,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad);
+[qdda_dynamics(:,i), Ta] = ddyn5(T,q0,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad);
+% Ta
+% [t0rd2] = fsecondkine5(qdda_dynamics(:,i),qd,q0,Ar,J);
+t0rd2 = [0;-9.80665];
+[qdd,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd2,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
+[T_(:,i)] = idyn5(q0,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit);
+
 g = -9.80665;
 t0rd1 = [0;g];
 [qdd,qdda_kinematics(:,i),qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd1,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
 % qdda_kinematics
 end
 
+T = zeros(2,length(T_));
 %Integrations 
 qda_dynamics(1,:) = cumtrapz(qdda_dynamics(1,:));
 qda_kinematics(1,:) = cumtrapz(qdda_kinematics(1,:));
@@ -83,6 +101,8 @@ plot(qdda_dynamics(1,:));
 hold on;
 grid on;
 plot(qdda_kinematics(1,:));
+plot(index,q_sing(1,:),'mo');
+plot(index,q_sing(2,:),'mo');
 hl1 = legend('$\ddot{qa}_{11dynamics}$','$\ddot{qa}_{11kinematics}$');
 set(hl1, 'Interpreter', 'latex');
 title('Qdda11');
@@ -91,6 +111,8 @@ plot(qdda_dynamics(2,:));
 hold on;
 grid on;
 plot(qdda_kinematics(2,:));
+plot(index,q_sing(1,:),'mo');
+plot(index,q_sing(2,:),'mo');
 hl2 = legend('$\ddot{qa}_{21dynamics}$','$\ddot{qa}_{21kinematics}$');
 set(hl2, 'Interpreter', 'latex');
 set(hl2, 'Location','southeast');
@@ -157,5 +179,33 @@ grid on;
 plot(qa(2,:));
 hl2 = legend('$qa_{11}$','$qa_{21}$');
 set(hl2, 'Interpreter', 'latex');
+plot(index,q_sing(1,:),'mo');
+plot(index,q_sing(2,:),'mo');
 % set(hl2, 'Location','southeast');
 title('ikinematic');
+
+f4 = figure(4);
+p4 = uipanel('Parent',f4,'BorderType','none'); 
+p4.Title = 'Torque'; 
+p4.TitlePosition = 'centertop'; 
+subplot(2,1,1,'Parent',p4)
+plot(T(1,:));
+hold on;
+grid on;
+plot(T_(1,:));
+hl1 = legend('T1','$T1_{1}$');
+plot(index,q_sing(1,:),'mo');
+plot(index,q_sing(2,:),'mo');
+set(hl1, 'Interpreter', 'latex');
+set(hl1, 'Location','southeast');
+title('T1');
+subplot(2,1,2,'Parent',p4)
+plot(T(2,:));
+hold on;
+grid on;
+plot(T_(2,:));
+hl2 = legend('T2','$T2_{2}$');
+plot(index,q_sing(1,:),'mo');
+plot(index,q_sing(2,:),'mo');
+set(hl2, 'Interpreter', 'latex');
+title('T2');

@@ -1,4 +1,4 @@
-function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
+function [qdda, T_] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     l = 0.205;
     d1 = [-0.125, l, l];
     d2 = [0.125, l, l];
@@ -41,8 +41,8 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     %Fricciones fv = viscosa fs= seca
     fv1 = [1.5e-1 0 0];
     fs1 = [1.5e-1 0 0];
-    fv2 = [1.5e-1 0];
-    fs2 = [1.5e-1 0];
+    fv2 = [0 0];
+    fs2 = [0 0];
     
 %     zz11 = 12375.675e-7; % kg-m²
     Ia11 = 0.48 * 0.0001; % kg-m2
@@ -54,8 +54,7 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     zz21r = zz21 + Ia21 + d2(2)^2 * m22;
 %     zz21r = 2.24e-2;
     m4 = 0.272;
-    xdd = t0rd(1);
-    ydd = t0rd(2);
+    
     % Direct dynamics model
     M11 = zz11r + zz12 + 2 * d1(2) * mx12 * cos(q1(2)) - ...
           2 * d1(2) * my12 * sin(q1(2));
@@ -117,7 +116,7 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     % M0r = Psit' * M0p * Psit; % Igual a m4*eye(2)
     M0r = m4 * eye(2);
 
-    Jd = Jtd \ (Jt * J - Jta);
+    Jd = pinv(Jtd) * (Jt * J - Jta);
 
     M = [eye(2), Jd'] * Et'*Mt*Et * [eye(2);Jd] + J'*M0r*J;
 
@@ -126,8 +125,8 @@ function [qdda] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     c = [eye(2) Jd'] * Et' * (ct + Mt*Et*[zeros(2,1); ad]) ...
         + J'*Psit'*(c0r+c0p); % if c0r and c0p are 0 the second term is 0
 
-    qdda = M \ (T-c);
-
+    qdda = (M) \ (T-c);
+    T_ = M * qdda + c;
 
 
 

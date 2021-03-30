@@ -17,7 +17,7 @@ x0 = 0;
 y0 = 0.35;
 p0 = [x0;y0];
 t0r0 = [0;0];
-
+t0rd0 = [0;0];
     q_mode = ikine5(p0);
     q0 = q_mode(:,4);
     q = q_mode(:,4); % Using -+ mode (4)
