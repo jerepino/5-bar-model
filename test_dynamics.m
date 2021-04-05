@@ -58,7 +58,7 @@ t0r = [0;0];
 % second order inverse kinematics
 t0rd = [0;0];
 % pa1 = p0 +   t0r * dt + t0rd * dt^2 / 2;
-[qdd,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
+[qdd,~,~,~,~,atp,ad,~,~,~] = isecondkine5(t0rd,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
 
 % second order forward kinematics
 % [t0rd2] = fsecondkine5(qdda,qd,q0,Ar,J)
@@ -70,7 +70,7 @@ T = [0;0];
 % Ta
 % [t0rd2] = fsecondkine5(qdda_dynamics(:,i),qd,q0,Ar,J);
 t0rd2 = [0;-9.80665];
-[qdd,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd2,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
+[qdd,qdda,~,~,~,~,~,~,~,~] = isecondkine5(t0rd2,t0r,p0,q0,qd,Ar,B,Jinv,Jt,Jta,Jtd,Psit);
 [T_(:,i)] = idyn5(q0,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit);
 
 g = -9.80665;
