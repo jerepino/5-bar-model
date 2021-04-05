@@ -14,7 +14,7 @@ arm2.base = transl(0.125, 0, 0);
 dt = 0.01;
 ang = 2*pi;
 qv = 1;
-qa = 0.5;
+qa = 2;
 PSt = [0;0.35];
 P0C = [0;0.3];
     
@@ -23,7 +23,25 @@ q0 = ikine5(PSt);
 qprev = q0(:,4);
 
 [q, qd, qdd, p, t0r, t0rd, tmax] = cirtraj(PSt ,P0C, qprev, ang, qv, qa, dt);
+%% Find max inertia
+% for i = 1:length(q(1,:))
+%     [~,qda,~,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r(:,i),p(:,i),q(:,i));
+%         % qda_
+% 
+%         % t0rd = fsecondkine5(qdda,qd,q,Ar,J);
+%     [~,qdda,qddu,Psit1,Psit2,atp,ad,b0p1,b0p2,Psidt] = isecondkine5(t0rd(:,i),t0r(:,i),p(:,i),q(:,i),qd(:,i),Ar,B,Jinv,Jt,Jta,Jtd,Psit);
+%     [qdda_d(:,i), ~,M{i}] = ddyn5([0;0],q(:,i),qd(:,i),qdd(:,i),t0rd(:,i),J,Jt,Jta,Jtd,Psit,atp,ad);
+% end
+% 
+% for i = 1:length(q(1,:))
+%     MM = M{i}
+%     M1(i) = max(MM(1,:));
+%     M2(i) = max(MM(2,:));
+% end
+% max(M1)
+% max(M2)
 
+%% Plot
 f1 = figure(1);
 p1 = uipanel('Parent',f1,'BorderType','none'); 
 p1.Title = 'Joint Space'; 
