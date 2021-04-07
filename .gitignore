@@ -17,6 +17,7 @@ helpsearch*/
 # Simulink code generation folders
 slprj/
 sccprj/
+five_bar_model_grt_rtw/
 
 # Matlab code generation folders
 codegen/
