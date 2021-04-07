@@ -6,7 +6,7 @@ function [sd] = sdfun(t,T,tau)
 %%
     a = 1 / (T * tau);
     v = 1 / T;
-    if t < 0
+    if t <= 0
         sd = 0;
     elseif t <= tau
         sd = a * t;
