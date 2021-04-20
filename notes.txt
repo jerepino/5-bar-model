@@ -1,2 +1,6 @@
 1. Usar pseudoinversa para evitar vel y acel infinitas. [x]
 2. Obtener espacio nulo ts. Tal vez sirver para pasar por las sigularidades.
+3. Revisar dinamica para contemplar el paso por singularidades de tipo 2
+    integrando las acceleraciones articulares. Para esto habría que ver si el 
+    modelo dinamico contempla el cambio de signo de la aceleración luego de
+    pasar por la singularidad. 
