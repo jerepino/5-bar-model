@@ -27,7 +27,6 @@ for j = 1:n-1
     dq = max(abs(qadesire(:,j+1) - qadesire(:,j))); %dq = desplazamiento total    
     [T(j),tau(j)] = tlparam(dq, qvel(j), qacc(j), dt);
 end
-
     tmax = sum(T) + tau(end);
     T_ant = 0;
     k = 1;
@@ -86,6 +85,7 @@ end
     end
 
 %     figure(4)
-%     plot(qdda(1,:))
+%     plot(qda(1,:))
 %     hold on;
-%     plot(qdd_(1,:))
+%     plot(qda(2,:))
+%     pause()

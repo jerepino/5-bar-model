@@ -13,16 +13,40 @@ arm2.base = transl(0.125, 0, 0);
 
 dt = 0.01;
 ang = 2*pi;
-qv = 1;
-qa = 2;
+qv = ones(3,1);
+qa = ones(3,1) * 2;
 PSt = [0;0.35];
 P0C = [0;0.3];
     
+p1 = [-0.0;0.39];
+p2 = [-0.01;0.38];
+p3 = [-0.1;0.38];
 
-q0 = ikine5(PSt);
-qprev = q0(:,4);
+b = 50;
+x = 0:(0.15-0)/50:0.15;
+y = 0.39:(0.25-0.39)/b:0.25;
+for i=1:length(x)
+    if rem(i,2) == 0
+        q0 = ikine5([x(i);y(i)]);
+        q_(:,i) = [q0(1,4);q0(4,4)];
+    else
+        q0 = ikine5([-x(i);y(i)]);
+        q_(:,i) = [q0(1,4);q0(4,4)];
+    end
+end
+qv = ones(length(q_),1);
+qa = ones(length(q_),1) * 2;
+% q0 = ikine5(p1);
+% qprev = q0(:,4);
+% q1 = ikine5(p2);
+% qprev1 = q1(:,4);
+% q2 = ikine5(p3);
+% qprev2 = q2(:,4);
+% qadesire = [qprev(1),qprev1(1), qprev2(1); qprev(4), qprev1(4), qprev2(4)]; 
+[q, qd, qdd, p, t0r, t0rd, tmax] = jotraj(q_, qv, qa, dt);
+% [q, qd, qdd, p, t0r, t0rd, tmax] = linctraj([p1,p2,p3], qprev, qv, qa, dt);
 
-[q, qd, qdd, p, t0r, t0rd, tmax] = cirtraj(PSt ,P0C, qprev, ang, qv, qa, dt);
+% [q, qd, qdd, p, t0r, t0rd, tmax] = cirtraj(PSt ,P0C, qprev, ang, 1, 2, dt);
 %% Find max inertia
 % for i = 1:length(q(1,:))
 %     [~,qda,~,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r(:,i),p(:,i),q(:,i));
@@ -102,7 +126,7 @@ title('Position');
 
 figure(3)
 plot(p(1,:),p(2,:),'r.');
-for i=1:10:length(q)
+for i=1:5:length(q)
 arm1.plot(q(1:3,i)');
 hold on;
 arm2.plot([q(4:5,i)' 0]);
