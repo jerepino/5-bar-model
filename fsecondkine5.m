@@ -13,6 +13,17 @@ function [t0rd] = fsecondkine5(qdda,qd,q,Ar,J)
     q2 = q(4:5);
     qd1 = qd(1:3);
     qd2 = qd(4:5);
+    
+    
+    if nargin < 4
+        B = -[ d1(2)*sin(q1(2)), 0;
+                0, d2(2)*sin(q2(2))];
+      
+        Ar = [cos(q1(1) + q1(2)), sin(q1(1) + q1(2));
+              cos(q2(1) + q2(2)), sin(q2(1) + q2(2))];
+        % forward model
+        J = -Ar \ B ;
+    end
 
     wr1 = [cos(q1(1)+q1(2)); sin(q1(1)+q1(2)); 0; 0; 0; 0];
     wr2 = [cos(q2(1)+q2(2)); sin(q2(1)+q2(2)); 0; 0; 0; 0];
