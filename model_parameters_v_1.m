@@ -15,7 +15,7 @@ for i=1:length(x)
     end
 end
 qv = ones(length(q_(1,:)),1) * 100;
-qa = ones(length(q_(1,:)),1) * 50;
+qa = ones(length(q_(1,:)),1) * 100;
  
 [q, qd, qdd, p, t0r, t0rd, tmax] = jotraj(q_, qv, qa, dt);
 
@@ -68,9 +68,9 @@ beq2 = Fv;
 
 % this are working good. 
 wn1 = beq1 / Jeq1;
-wpos1 =   20 * wn1;
+wpos1 =   25 * wn1;
 wn2 = beq2 / Jeq2;
-wpos2 =  20 * wn2;
+wpos2 =  25 * wn2;
 zita = 1;
 Kpi = [ wpos1^2;  wpos2^2];
 Kdi = [2 * zita *  wpos1; 2  * zita * wpos2];
@@ -85,12 +85,13 @@ Kdi = [2 * zita *  wpos1; 2  * zita * wpos2];
 % Kdi = [n *  wpos1; n * wpos2];
 
 % Leaky integrator filter 
-lambda = 0.95;
+lambda = 0.7;
 % fs = 1/1e-3;
 % fs = 30 ;%* wn1 / (2*pi)
 step = 2 * pi / 4096; 
 Nr = 4096;
-fs  = max(qd(1,:))  / (2*pi) * Nr ; % 314 rad / s tipica velocidad maxima de un motor
+% fs  = max(qd(1,:))  / (2*pi) * Nr ; % 314 rad / s tipica velocidad maxima de un motor
+fs  = (1/0.1);
 fc0 = - log(lambda) / pi * fs;
 wco = 2 * pi * fc0;
 
