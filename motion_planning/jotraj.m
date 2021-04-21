@@ -1,76 +1,91 @@
-function [q, dq, r, rd, rdd, tmax] = jotraj(qd, R, qv, qa, dt)
+function [q, qd, qdd, p, t0r, t0rd, tmax] = jotraj(qadesire, qvel, qacc, dt)
 %% Funcion para generar trayectorias entre puntos articulares
 % qd = vector de posiciones articulares
 % qv = maxima velocidad articular por trayecto
 % qa = maxima aceleracion articular por trayecto
 %%
-n = length(qd(:,1))-1;
+n = length(qadesire(1,:));
 
-if nargin < 3
+if nargin < 2
     % velicidades articulares maximas
-    dqlim = [deg2rad(85) deg2rad(85) deg2rad(100) deg2rad(75) deg2rad(130) deg2rad(135) deg2rad(135)];
+    dqlim = [deg2rad(360) deg2rad(360) deg2rad(360) deg2rad(360) deg2rad(360)];
     ddqlim = dqlim / 0.8; % Se asume que el robot llegara en 0.5 s a su velocidad maxima linealmente -> a = dqlim/0.5
     for i=1:n
-        qv(i) = min(dqlim);
-        qa(i) = min(ddqlim);
+        qvel(i) = min(dqlim);
+        qacc(i) = min(ddqlim);
     end
     dt = 0.05;
-elseif nargin < 5
+elseif nargin < 4
     dt = 0.05;
 end
 
 
-T = zeros(n,1);
+T = zeros(1,n-1);
 tau = T;
 
-for j = 1:n
-    dq = max(abs(qd(j+1,:) - qd(j,:))); %dq = desplazamiento total    
-    [T(j),tau(j)] = tlpar(dq, qv(i), qa(i), dt);
+for j = 1:n-1
+    dq = max(abs(qadesire(:,j+1) - qadesire(:,j))); %dq = desplazamiento total    
+    [T(j),tau(j)] = tlparam(dq, qvel(j), qacc(j), dt);
 end
+    tmax = sum(T) + tau(end);
+    T_ant = 0;
+    k = 1;
+    l = 1;
+    m = round(tmax/dt) + 1;
+    p = zeros(2,m);
+    t0r = p;
+    t0rd = p;
+    % T_ = zeros(4,4,m);
+    q = zeros(5,m);
+    qd = q;
+    qdd = q;
+    qa = zeros(2,m);
+    qda = qa;
+    qdda = qa;
+    for t = 0 : dt : tmax
 
-tmax = sum(T)+sum(tau);
-m = round(tmax / dt) + 1;
-
-q = zeros(m,7);
-dq = q;
-ddq = q;
-
-r = zeros(m,6);
-l = 1;
-
-
-for k= 1: n
-    
-    qstart = qd(k,:);
-    qtarget = qd(k+1,:);
-    
-    for t = 0 : dt : T(k)+tau(k)
-        
-        if l ~= 1 && t == 0
-            continue;
+        s = sfun(t - T_ant, T(k), tau(k));
+        ds = sdfun(t - T_ant, T(k), tau(k));
+        dds = sddfun(t - T_ant, T(k), tau(k));
+%         dds_(l) = dds;
+        if n > 2 
+            T2 = sum(T(1:k));
+            s2 = sfun(t-T2, T(k+1), tau(k+1));
+            ds2 = sdfun(t-T2, T(k+1), tau(k+1));
+            dds2 = sddfun(t-T2, T(k+1), tau(k+1));
+            qadiff2 = qadesire(:,k+2) - qadesire(:,k+1);
+        else
+            s2 = 0;
+            ds2 = 0;
+            dds2 = 0;
+            qadiff2 = 0;
         end
+        qadiff1 = qadesire(:,k+1) - qadesire(:,k);
+        qa(:,l) = qadesire(:,k) + s * qadiff1 + s2 * qadiff2;
+        qda(:,l) = ds * qadiff1 + ds2 * qadiff2;
+        qdda(:,l) = dds * qadiff1 + dds2 * qadiff2;
         
-        s = sfun(t, T(k), tau(k));
-        ds = sdfun(t, T(k), tau(k));
-        dds = safun(t, T(k), tau(k));
+        [p(:,l),q(:,l)] = fkine5(qa(:,l), 1);
+        [t0r(:,l)] = ffirstkine5(q(:,l),qda(:,l));
+        [qd(:,l),~,~,Ar,B,J,Jinv,Jt,Jta,Jtd,Psit] = ifirstkine5(t0r(:,l),p(:,l), ...
+                                                        q(:,l));
+        [t0rd(:,l)] = fsecondkine5(qdda(:,l),qd(:,l),q(:,l),Ar,J);
+%         [q(:,l),~,~] = ikine5(p(:,l),qprev);
+        [qdd(:,l),~,~,~,~,~,~,~,~,~] = isecondkine5(t0rd(:,l),t0r(:,l),p(:,l), ...
+                                        q(:,l),qd(:,l),Ar,B,Jinv,Jt,Jta,Jtd,Psit);
         
-        q(l,:) = qstart + s * (qtarget - qstart);
-        dq(l,:) = ds * (qtarget - qstart);
-        ddq(l,:) = dds * (qtarget - qstart);
+%         qprev = q(:,l);
+
         
-        T_ = R.fkine(q(l,:));
-        r(l,:) = [T_(1:3,4)', tr2rpy(T_(1:3,1:3))];
+        if n > 2 && (s==1) && (k ~= n-2)
+            T_ant = T2;
+            k = k+1;
+        end
         l = l + 1;
     end
-end
 
-rd = zeros(size(r));
-
-for i = 1 : length(q)
-    rd(i,:) = R.jacob0(q(i,:)) * dq(i,:)';
-end
-
-rdd = diff(rd)/dt;
-
-rdd = [[0 0 0 0 0 0];rdd];
-end
+%     figure(4)
+%     plot(qda(1,:))
+%     hold on;
+%     plot(qda(2,:))
+%     pause()

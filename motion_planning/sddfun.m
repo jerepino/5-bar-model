@@ -5,7 +5,7 @@ function [sdd] = sddfun(t,T,tau)
 %   Esta funcion se puede suavizar para tener jerk constante!!
 %%
     a = 1 / (T * tau);
-    if t < 0
+    if t <= 0
         sdd = 0;
     elseif t <= tau
         sdd = a;

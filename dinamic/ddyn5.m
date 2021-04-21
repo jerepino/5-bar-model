@@ -1,4 +1,4 @@
-function [qdda, T_] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
+function [qdda, T_,M] = ddyn5(T,q,qd,qdd,t0rd,J,Jt,Jta,Jtd,Psit,atp,ad)
     l = 0.205;
     d1 = [-0.125, l, l];
     d2 = [0.125, l, l];

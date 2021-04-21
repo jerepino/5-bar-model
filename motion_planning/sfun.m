@@ -6,7 +6,7 @@ function [s] = sfun(t,T,tau)
 %%
     a = 1 / (T * tau);
     v = 1 / T;
-    if t < 0
+    if t <= 0
         s = 0;
     elseif t <= tau
         s = a * t^2 /2;
